@@ -51,6 +51,8 @@ public class CourseController : ControllerBase
             String query = "select * from courses as c " +
                            "join instructors as I on c.Instructor_id=I.Id " +
                            "join enrollments as e on c.Id = e.CourseId where c.id = @id";
+            
+            //this is for checking
         }
     }
 
