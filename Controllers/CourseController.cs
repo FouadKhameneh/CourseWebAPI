@@ -26,11 +26,13 @@ public class CourseController : ControllerBase
                 {
                     while (reader.Read())
                     {
+                        int.TryParse(reader["Instructor_Id"].ToString(), out int d);
+                        
                         courses.Add(new()
                         {
                             Id = (int)reader["Id"],
                             courseName = reader["Name"].ToString(),
-                            instructorId = reader.GetInt32(2)
+                            instructorId = d == 0 ? null : d
                         });
                     }
                 }
@@ -41,18 +43,19 @@ public class CourseController : ControllerBase
 
     [Route("GetSpecific")]
     [HttpGet]
-    public JsonResult GetSpecific(GetSpecificViewModel _getSpecificViewModel)
+    public JsonResult GetSpecific([FromQuery]GetSpecificViewModel _getSpecificViewModel)
     {
         string connectionString = "data source=.;database=SinaDB;integrated security=SSPI";
         SqlConnection con = new SqlConnection(connectionString);
         using (con)
         {
             con.Open();
-            String query = "select c.Id as 'Course Id',c.Name as 'Course name',I.InstructorName as 'instructor name'  ,s.Id as 'Student Id', s.Name as 'Student name'  from courses as c" +
-                           "left join instructors as I on c.Instructor_id=I.Id" +
-                           "left join enrollments as e on c.Id = e.CourseId" +
-                           "left join students as s on s.Id = e.StudentId" +
-                           "where c.Id = @id";
+            string query = "select c.Id as 'Course Id',c.Name as 'Course name',I.InstructorName as 'instructor name'  ,s.Id as 'Student Id', s.Name as 'Student name'  from courses as c" +
+                  " left join instructors as I on c.Instructor_id=I.Id" +
+                  " left join enrollments as e on c.Id = e.CourseId" +
+                  " left join students as s on s.Id = e.StudentId" +
+                  " where c.Id = @id";
+            
             using (SqlCommand cmd = new SqlCommand(query, con))
             {
                 cmd.Parameters.AddWithValue("@id", _getSpecificViewModel.CourseId);
@@ -128,7 +131,7 @@ public class CourseController : ControllerBase
         using (con)
         {
             con.Open();
-            string query = "UPDATE Courses SET courseName = @courseName, InstructorId = @InstructorId WHERE Id = @Id";
+            string query = "UPDATE courses SET Name = @courseName, Instructor_Id = @InstructorId WHERE Id = @Id";
 
             using (SqlCommand command = new SqlCommand(query, con))
             {
@@ -148,13 +151,13 @@ public class CourseController : ControllerBase
     public JsonResult DeleteCourse(DeleteCourseViewModel _deleteCourseViewModel)
     {
         string connectionString = "data source=.;database=SinaDB;integrated security=SSPI";
-        using (SqlConnection con = new SqlConnection())
+        using (SqlConnection con = new SqlConnection(connectionString))
         {
             con.Open();
             string query = "delete from enrollments "
-                + "where CourseId = @Id1"
-                + "delete from courses"
-                + "where Id = @Id2";
+                + "where CourseId = @Id1;"
+                + "delete from courses "
+                + " where Id = @Id2;";
             using (SqlCommand cmd = new SqlCommand(query, con))
             {
                 cmd.Parameters.AddWithValue("@Id1", _deleteCourseViewModel.Id);
