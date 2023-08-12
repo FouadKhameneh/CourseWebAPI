@@ -52,7 +52,8 @@ public class CourseController : ControllerBase
                            "join instructors as I on c.Instructor_id=I.Id " +
                            "join enrollments as e on c.Id = e.CourseId where c.id = @id";
             
-            //this is for checking
+            
+            
         }
     }
 
@@ -67,6 +68,24 @@ public class CourseController : ControllerBase
     [HttpPost]
     public JsonResult EnrollStudent(EnrollStudentViewModel _enrollStudentViewModel)
     {
+        string connectionString = "Server=localhost;Database=master;User Id=sa;Password=admin123*";
+        SqlConnection con = new SqlConnection(connectionString);
+        using (con)
+        {
+            con.Open();
+            string query = "INSERT INTO Enrollments (Id, StudentId, CourseId) VALUES (@Id, @StudentId, @CourseId)";
+
+            using (SqlCommand command = new SqlCommand(query, con))
+            {
+                command.Parameters.AddWithValue("@Id",_enrollStudentViewModel.Id);
+                command.Parameters.AddWithValue("@StudentId",_enrollStudentViewModel.studentId);
+                command.Parameters.AddWithValue("@CourseId",_enrollStudentViewModel.courseId);
+                
+                int rowsAffected = command.ExecuteNonQuery();
+
+                return new JsonResult(_enrollStudentViewModel);
+            }
+        }
         
     }
 
@@ -74,7 +93,24 @@ public class CourseController : ControllerBase
     [HttpPut]
     public JsonResult UpdateCourse(UpdateCourseViewModel _updateCourseViewModel)
     {
-        
+        string connectionString = "Server=localhost;Database=master;User Id=sa;Password=admin123*";
+        SqlConnection con = new SqlConnection(connectionString);
+        using (con)
+        {
+            con.Open();
+            string query = "UPDATE Courses SET courseName = @courseName, InstructorId = @InstructorId WHERE Id = @Id";
+
+            using (SqlCommand command = new SqlCommand(query, con))
+            {
+                command.Parameters.AddWithValue("@courseName",_updateCourseViewModel.courseName);
+                command.Parameters.AddWithValue("@InstructorId",_updateCourseViewModel.InstructorId);
+                command.Parameters.AddWithValue("@Id",_updateCourseViewModel.Id);
+                
+                int rowsAffected = command.ExecuteNonQuery();
+
+                return new JsonResult(_updateCourseViewModel);
+            }
+        }
     }
 
     [Route("DeleteCourse")]
